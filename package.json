@@ -1,0 +1,15 @@
+{
+    "name": "surfsharks-scraper",
+    "version": "1.0.0",
+    "description": "",
+    "main": "scraper.js",
+    "scripts": {
+        "start": "node ."
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "axios": "^0.26.0",
+        "uuid": "^8.3.2"
+    }
+}
