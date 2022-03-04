@@ -7,19 +7,31 @@ const flags = require("flags");
 flags.defineInteger(
     "offset",
     0,
-    "--offset n: Tell scraper to start parsing from the nth nft"
+    "--offset n: Tell scraper to start parsing from the nth nft (MAX: 1910)"
 );
 
 flags.defineInteger(
     "limit",
     30,
-    "--limit n: Tell scraper to parse n number of nfts per run"
+    "--limit n: Tell scraper to parse n number of nfts per run (MAX: 30)"
 );
 
 flags.defineString(
     "filename",
     "",
     "--filename s: Set filename of parsed output to s"
+);
+
+flags.defineInteger(
+    "random",
+    -1,
+    "--random n: Generate n random token addresses and get information"
+);
+
+flags.defineInteger(
+    "max",
+    1910,
+    "--max n: Set max number of NFTs for random generation"
 );
 
 flags.parse();
@@ -82,7 +94,36 @@ const getMintPrice = async (mint_signature) => {
         .amount;
 };
 
-(async function main() {
+const getRandomNFTs = async (size, max) => {
+    const NFTs = [];
+
+    while (NFTs.length < size) {
+        const N = Math.floor(Math.random() * max);
+
+        const tokenAddr = (
+            await getNFTsFromCollectionId(COLLECTION_ID, N, 1)
+        )[0];
+        console.log(tokenAddr);
+        try {
+            const ownerAddr = await getOwnerFromTokenAddress(tokenAddr);
+            const mintSig = await getMintSignature(tokenAddr);
+            const mintPrice = await getMintPrice(mintSig);
+
+            NFTs.push({ tokenAddr, ownerAddr, mintSig, mintPrice });
+        } catch (err) {
+            console.error(
+                err?.response?.status,
+                err?.response?.headers,
+                tokenAddr
+            );
+        }
+    }
+
+    JSONWrite(NFTs, { COUNT: NFTs.length });
+    console.log(NFTs);
+};
+
+async function main() {
     const NFTAddresses = await getNFTsFromCollectionId(
         COLLECTION_ID,
         OFFSET,
@@ -98,10 +139,18 @@ const getMintPrice = async (mint_signature) => {
 
                 return { tokenAddr, ownerAddr, mintSig, mintPrice };
             } catch (err) {
-                console.error("ERROR at TOKEN: ", tokenAddr);
+                console.error(
+                    err.response.status,
+                    "ERROR at TOKEN: ",
+                    tokenAddr
+                );
                 JSONErr([
                     {
                         token: tokenAddr,
+                        err: {
+                            status: err.response.status,
+                            headers: err.response.headers,
+                        },
                     },
                 ]);
                 return null;
@@ -111,4 +160,8 @@ const getMintPrice = async (mint_signature) => {
 
     JSONWrite(NFTs, { OFFSET, LIMIT, COUNT: NFTs.length });
     console.log(NFTs);
-})();
+}
+
+flags.get("random") > 0
+    ? getRandomNFTs(flags.get("random"), flags.get("max"))
+    : main();
