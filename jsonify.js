@@ -2,9 +2,7 @@ const fs = require("fs");
 const fsPromises = fs.promises;
 const path = require("path");
 
-const OUTPUT_FOLDER = path.join(__dirname, "/out");
-
-function writeFactory(UUID) {
+function writeFactory(UUID, OUTPUT_FOLDER) {
     return async function write(data, metadata) {
         try {
             let DATA = [];
@@ -30,4 +28,5 @@ function writeFactory(UUID) {
         }
     };
 }
+
 module.exports = writeFactory;
