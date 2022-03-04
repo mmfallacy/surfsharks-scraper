@@ -16,7 +16,7 @@ const JSONErr = jsonifyFactory(OUT_UUID, path.join(OUTPUT_FOLDER, "/err"));
 
 const OFFSET = 0;
 
-const LIMIT = 30;
+const LIMIT = 50;
 
 const getNFTsFromCollectionId = async (id, off, lim) => {
     const response = await axios.get(`${URL}/collection/nft`, {
@@ -40,7 +40,7 @@ const getOwnerFromTokenAddress = async (addr) => {
     });
     console.log("TOKEN ADDR: ", addr);
     console.log(response.data.data);
-    return response.data.data.result[0].address;
+    return response.data.data.result[0].owner;
 };
 
 const getMintSignature = async (addr) => {
